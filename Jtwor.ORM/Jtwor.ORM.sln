@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31112.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jtwor.ORM", "Jtwor.ORM.csproj", "{3C136391-A20C-4246-A955-DCE2ECA87933}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "..\Test\Test.csproj", "{79E3543B-9DE5-4D6E-8D43-AD60CEA15102}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3C136391-A20C-4246-A955-DCE2ECA87933}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C136391-A20C-4246-A955-DCE2ECA87933}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C136391-A20C-4246-A955-DCE2ECA87933}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C136391-A20C-4246-A955-DCE2ECA87933}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79E3543B-9DE5-4D6E-8D43-AD60CEA15102}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79E3543B-9DE5-4D6E-8D43-AD60CEA15102}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79E3543B-9DE5-4D6E-8D43-AD60CEA15102}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79E3543B-9DE5-4D6E-8D43-AD60CEA15102}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C94005A0-0BEE-4829-BE3B-7C095358C0C6}
+	EndGlobalSection
+EndGlobal
