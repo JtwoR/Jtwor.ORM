@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Jtwor.ORM.Attributes;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -7,14 +9,19 @@ namespace Jtwor.ORM
 {
     public class DbSet<T> : IQuery<T>
     {
+        private DbHelper _db = new DbHelper();
 
         private string _SelectStr = string.Empty;
         private string _WhereStr = string.Empty;
         private string _GroupByStr = string.Empty;
+        private string _TableNameStr = string.Empty;
 
         private List<LambdaExpression> _whereExpressions = new List<LambdaExpression>();
         private Expression<Func<T, object[]>> _groupExpressions = null;
         private Expression<Func<T, object>> _selectExpressions = null;
+
+        private Dictionary<string, object> _paramDic = new Dictionary<string, object>();
+        private Dictionary<string, int> _paramCheck = null;
 
         #region Where 条件
         public IQuery<T> Where(Expression<Func<T, bool>> expre)
@@ -28,6 +35,7 @@ namespace Jtwor.ORM
 
         private string GetWhereStr()
         {
+            _paramCheck = new Dictionary<string, int>();
 
             StringBuilder sb = new StringBuilder();
 
@@ -62,24 +70,31 @@ namespace Jtwor.ORM
                 case ExpressionType.Equal:
                     {
                         var body = expression as BinaryExpression;
+                        string name = null;
 
+                        //参数化
                         if (body.Left is MemberExpression)
                         {
-                            sb.Append((body.Left as MemberExpression).Member.Name);
+                            name=(body.Left as MemberExpression).Member.Name;
                         }
-                        else if (body.Left is ConstantExpression)
-                        {
-                            sb.Append((body.Left as ConstantExpression).Value);
-                        }
-                        sb.Append(" = ");
                         if (body.Right is MemberExpression)
                         {
-                            sb.Append((body.Right as MemberExpression).Member.Name);
+                            name = (body.Right as MemberExpression).Member.Name;
+                        }
+
+                        if (!_paramCheck.ContainsKey(name)) { _paramCheck.Add(name, 0); }
+                        else { _paramCheck[name]++; }
+
+                        if (body.Left is ConstantExpression)
+                        {
+                            _paramDic.Add($@"@{name}{_paramCheck[name]}", (body.Left as ConstantExpression).Value);
                         }
                         else if (body.Right is ConstantExpression)
                         {
-                            sb.Append((body.Right as ConstantExpression).Value);
+                            _paramDic.Add($@"@{name}{_paramCheck[name]}", (body.Right as ConstantExpression).Value);
                         }
+
+                        sb.Append($@"{name} = @{name}{_paramCheck[name]}");
                     }
                     break;
                 case ExpressionType.AndAlso:
@@ -121,6 +136,17 @@ namespace Jtwor.ORM
             }
 
             return sb.ToString();
+        }
+
+        private string ValueFormat(object value) {
+
+            string result = Type.GetTypeCode(value.GetType()) switch
+            {
+                TypeCode.String => $"\"{value.ToString()}\"",
+                _=>value.ToString()
+            };
+
+            return result;
         }
         #endregion
 
@@ -193,14 +219,71 @@ namespace Jtwor.ORM
         }
         #endregion
 
+        #region TableName
+        private string GetTableNameStr()
+        {
+            Type type = typeof(T);
+            var check = type.GetCustomAttributes(typeof(Table),true);
+            if (check.Length > 0) {
+                Attribute obj = (Attribute)check.FirstOrDefault();
+                Table table = (Table)obj;
+                if (!string.IsNullOrEmpty(table.GetName()))
+                {
+                    _TableNameStr = table.GetName();
+                    return _TableNameStr;
+                }
+            }
+
+            _TableNameStr = type.Name;
+            return _TableNameStr;
+        }
+        #endregion
+
+        #region 查询
+        public List<T> ToList()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            if (_SelectStr.Length > 0)
+            {
+                sb.Append($@"SELECT {_SelectStr} ");
+            }
+            else
+            {
+                sb.Append($@"SELECT  * ");
+            }
+
+            GetTableNameStr();
+            if (_TableNameStr.Length > 0)
+            {
+                sb.Append($@"From {_TableNameStr} ");
+            }
+            else
+            {
+                //todo
+                throw new Exception();
+            }
+
+            if (_WhereStr.Length > 0) sb.Append($@"WHERE {_WhereStr} ");
+            if (_GroupByStr.Length > 0) sb.Append($@"GROUP BY {_GroupByStr} ");
+
+            return _db.ExecuteReader<T>(sb.ToString(), _paramDic);
+        }
+        #endregion
+
+
         public string CheckSql()
         {
+            GetTableNameStr();
 
             StringBuilder sb = new StringBuilder();
 
             sb.Append("\n");
             sb.Append("Select ");
             sb.Append(_SelectStr);
+            sb.Append("\n");
+            sb.Append("From ");
+            sb.Append(_TableNameStr);
             sb.Append("\n");
             sb.Append("Where ");
             sb.Append(_WhereStr);

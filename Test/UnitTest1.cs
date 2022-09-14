@@ -1,4 +1,5 @@
 using Jtwor.ORM;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using System.Diagnostics;
 
@@ -15,18 +16,13 @@ namespace Test
         public void Test1()
         {
             DbSet<User> test = new DbSet<User>();
-            test.Where(w => (w.name == "123" || w.name == "654") || (w.sex == "321" && (w.sex == "456" || w.birthday == "789")))
-                .GroupBy(g => new object[] { g.name, g.sex })//.Select(s=>new { nnn=s.name});
-                .Select(s => new 
-                {
-                    NameStr = s.name,
-                    SexStr = s.sex
-                });
+            test.Where(w => (w.name == "≤‚ ‘"));
 
-            Debug.WriteLine(test.CheckSql());
+            var result = test.ToList();
+
+            Debug.WriteLine(JsonConvert.SerializeObject(result));
         }
     }
-
 
     public class User
     {
